@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Text Manager Pro - Extended Presets</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+  />
+  <style>
+    /*************************************************
+     *                THEME & GLOBAL
+     *************************************************/
+    :root {
+      --primary: #2196f3;
+      --background: #ffffff;
+      --text: #333;
+      --lightGrey: #f0f0f0;
+      --danger: #f44336;
+      --accent: #4caf50;
+    }
+    [data-theme="dark"] {
+      --background: #2d2d2d;
+      --text: #fff;
+      --lightGrey: #444;
+    }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: sans-serif;
+      background: var(--background);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    /* Green "Copy All" Button */
+    .copy-all-button {
+      background: #4caf50; /* Green color */
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .copy-all-button:hover {
+      opacity: 0.9;
+    }
+    /* Minimal tooltip on hover (optional) */
+    [data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      background: #333;
+      color: #fff;
+      padding: 5px 8px;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      top: -35px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /*************************************************
+     *           NOTIFICATION & THEME TOGGLE
+     *************************************************/
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: none;
+      font-size: 1.2rem;
+    }
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 4px;
+      display: none;
+      z-index: 999;
+    }
+
+    /*************************************************
+     *                GRID LAYOUT
+     *************************************************/
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 80%;
+      margin: 0 auto;
+    }
+    @media (max-width: 800px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /*************************************************
+     *               SECTION STYLES
+     *************************************************/
+    .section {
+      background: var(--lightGrey);
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .section-body {
+      margin-top: 10px;
+    }
+    .collapsed .section-body {
+      display: none;
+    }
+
+    /*************************************************
+     *               EDITOR SECTION
+     *************************************************/
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .text-editor {
+      width: 100%;
+      height: 200px;
+      margin-bottom: 10px;
+    }
+    #counterPanel {
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    /*************************************************
+     *             CLIPBOARD SECTION
+     *************************************************/
+    .search-bar {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .clipboard-panel {
+      max-height: 50%;
+      overflow-y: auto;
+      display: grid;
+      gap: 7px;
+    }
+    .clip-item {
+      background: rgba(0,0,0,0.05);
+      padding: 6px;
+      border-radius: 4px;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .clip-content {
+      flex: 1;
+      margin-right: 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .type-indicator {
+      width: 4px;
+      background: var(--primary);
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      border-radius: 4px 0 0 4px;
+    }
+
+    /*************************************************
+     *             REGEX PRESETS SECTION
+     *************************************************/
+    .regex-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0;
+    }
+    .regex-preset {
+      background: var(--lightGrey);
+      padding: 4px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    .regex-preset:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /*************************************************
+     *             UNDO BUTTON
+     *************************************************/
+    #undoButton:disabled {
+      background: #666;
+    }
+
+    /*************************************************
+     *           MODALS (PRESET SETTINGS, ETC.)
+     *************************************************/
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      left: 0; top: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal {
+      background: var(--background);
+      color: var(--text);
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      max-width: 90%;
+      position: relative;
+    }
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      color: var(--text);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* Preset Settings Modal Content */
+    .preset-settings {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .preset-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 4px;
+      background: var(--lightGrey);
+    }
+  </style>
+</head>
+<body>
+  <!-- THEME TOGGLE -->
+  <button class="theme-toggle" onclick="toggleTheme()" data-tooltip="Toggle Dark/Light Theme">🌓</button>
+
+  <!-- NOTIFICATION -->
+  <div class="notification" id="notification">Copied!</div>
+
+  <!-- MAIN CONTAINER -->
+  <div class="container">
+
+    <!-- EDITOR SECTION -->
+    <div class="section" id="editorSection">
+      <div class="section-header">
+        <h2>Smart Editor <i class="fas fa-edit"></i></h2>
+        <button onclick="toggleCollapse('editorSection')"><i class="fas fa-chevron-up"></i></button>
+      </div>
+      <div class="section-body">
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <button onclick="formatText('bold')" data-tooltip="Wrap selection in ** for bold"><i class="fas fa-bold"></i></button>
+          <button onclick="formatText('italic')" data-tooltip="Wrap selection in * for italic"><i class="fas fa-italic"></i></button>
+          <button onclick="extractLinks()" data-tooltip="Extract links from editor text"><i class="fas fa-link"></i> Links</button>
+          <button onclick="extractEmails()" data-tooltip="Extract emails from editor text"><i class="fas fa-envelope"></i> Emails</button>
+        </div>
+
+        <!-- Text Editor -->
+        <textarea class="text-editor" id="editor" oninput="updateWordCharCount()"></textarea>
+
+        <!-- Secondary Toolbar -->
+        <div class="toolbar">
+          <button onclick="processText()" data-tooltip="Detect & add snippet"><i class="fas fa-magic"></i> Process</button>
+          <input type="text" id="customRegex" placeholder="Custom Regex (e.g. \\b\\w{5}\\b)" />
+          <button onclick="extractCustomRegex()" data-tooltip="Extract with custom regex"><i class="fas fa-search"></i> Extract</button>
+        </div>
+
+        <!-- Word/Char Counters -->
+        <div id="counterPanel">Words: 0 | Characters: 0</div>
+
+        <!-- Regex Presets Section -->
+        <div class="regex-presets">
+          <!-- This button & presets get (re)rendered via JS -->
+          <button onclick="openPresetSettings()" style="margin-right:10px;">
+            <i class="fas fa-cog"></i> Manage Presets
+          </button>
+          <!-- Preset chips will appear here dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIPBOARD SECTION -->
+    <div class="section" id="clipboardSection">
+      <div class="section-header">
+        <h2>Clipboard History <i class="fas fa-history"></i></h2>
+        <button onclick="toggleCollapse('clipboardSection')"><i class="fas fa-chevron-up"></i></button>
+      </div>
+      <div class="section-body">
+
+        <!-- Toolbar: Import/Export/Undo & Copy All -->
+        <div class="toolbar">
+          <button onclick="exportClips()" data-tooltip="Export all clips to JSON"><i class="fas fa-file-export"></i> Export</button>
+          <button onclick="importClips()" data-tooltip="Import clips from JSON"><i class="fas fa-file-import"></i> Import</button>
+          <button onclick="clearAllClips()" data-tooltip="Delete all snippets"><i class="fas fa-trash"></i> Clear All</button>
+          <button id="undoButton" onclick="undoLastAction()" disabled data-tooltip="Undo last action (Ctrl+Z)">
+            <i class="fas fa-undo"></i> Undo
+          </button>
+          <!-- New "Copy All" Button -->
+          <button class="copy-all-button" onclick="copyAllClips()" data-tooltip="Copy all clips">
+            <i class="fas fa-copy"></i> Copy All
+          </button>
+          <input type="file" id="fileInput" style="display:none" />
+        </div>
+
+        <!-- Search -->
+        <input
+          type="text"
+          class="search-bar"
+          placeholder="Search clips..."
+          oninput="filterClips(this.value)"
+        />
+
+        <!-- Clipboard Panel -->
+        <div class="clipboard-panel" id="clipboardPanel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRESET SETTINGS MODAL -->
+  <div class="modal-backdrop" id="presetSettingsModal">
+    <div class="modal">
+      <button class="close-btn" onclick="closePresetSettings()">&times;</button>
+      <h3>Regex Preset Settings</h3>
+      <div class="preset-settings" id="presetSettings"></div>
+      <div class="modal-footer">
+        <button onclick="savePresetSettings()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*************************************************
+     *           GLOBAL VARIABLES & THEME
+     *************************************************/
+    let clips = JSON.parse(localStorage.getItem("clips") || "[]");
+    let currentTheme = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", currentTheme);
+
+    // Undo System
+    let actionHistory = [];
+    const MAX_HISTORY = 50;
+
+    // Regex Presets (20+)
+    // Ordered from most simple to most advanced
+    const regexPresets = {
+      /* ========================
+       *  EXISTING PRESETS
+       *  (DO NOT DELETE ANY)
+       * ======================= */
+      sentences: {
+        name: "Proper Sentences",
+        pattern: /[A-Z][^.!?]*[.!?]/g,
+        desc: "Complete sentences starting with capital letter and ending with punctuation",
+        enabled: true
+      },
+      dates: {
+        name: "Date Finder",
+        pattern: /\b\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}\b/g,
+        desc: "Common date formats (MM/DD/YYYY or DD-MM-YY)",
+        enabled: true
+      },
+      capitalized: {
+        name: "Capitalized Words",
+        pattern: /\b[A-Z][a-z]+\b/g,
+        desc: "Proper nouns and capitalized words",
+        enabled: true
+      },
+      emails: {
+        name: "Email Addresses",
+        pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
+        desc: "Email addresses",
+        enabled: true
+      },
+      urls: {
+        name: "URLs",
+        pattern: /https?:\/\/[^\s]+/g,
+        desc: "Web URLs and links",
+        enabled: true
+      },
+      twitter: {  // Renamed to "@handle"
+        name: "@handle",
+        pattern: /@\w+/g,
+        desc: "Twitter/X username mentions",
+        enabled: true
+      },
+      markdownlinks: {
+        name: "Markdown Links",
+        pattern: /\[.*?\]\(.*?\)/g,
+        desc: "Markdown formatted links",
+        enabled: true
+      },
+      times: {
+        name: "Time Formats",
+        pattern: /\b(?:[01]?[0-9]|2[0-3]):[0-5][0-9](?::[0-5][0-9])?\b/g,
+        desc: "24-hour time formats (HH:MM:SS)",
+        enabled: true
+      },
+      commalists: {
+        name: "Comma-Separated Lists",
+        pattern: /\b[A-Za-z]+(?:\s*,\s*[A-Za-z]+)+[,.!;:]*/g,
+        desc: "Detects simple lists like 'car, bus, train,' etc.",
+        enabled: true
+      },
+      paragraphs: {
+        name: "Paragraphs",
+        // Matches blocks of text separated by blank lines or end of input
+        pattern: /(^|\n)([^\n]+)(?=\n|$)/g,
+        desc: "Captures blocks of text separated by line breaks",
+        enabled: true
+      },
+      repeatedwords: {
+        name: "Repeated Words",
+        pattern: /\b([A-Za-z]+)\s+\1\b/gi,
+        desc: "Finds consecutive repeated words (e.g. 'very very')",
+        enabled: true
+      },
+      bulletpoints: {
+        name: "Bulleted Lists",
+        // Matches lines starting with * + or -
+        pattern: /(^|\n)[*+\-]\s+.*/g,
+        desc: "Lines beginning with '*', '+' or '-' to denote bullets",
+        enabled: true
+      },
+      bracketed: {
+        name: "Bracketed Text",
+        // Matches parentheses ( ... ), brackets [ ... ], braces { ... }
+        pattern: /\([^)]*\)|\[[^\]]*\]|\{[^}]*\}/g,
+        desc: "Text enclosed in parentheses, brackets, or braces",
+        enabled: true
+      },
+      numericlines: {
+        name: "Fully Numeric Lines",
+        // Matches lines that contain only digits (and optional spaces)
+        pattern: /^[0-9\s]+$/gm,
+        desc: "Lines made up of digits/spaces only",
+        enabled: true
+      },
+      uppercaseonly: {
+        name: "Fully Uppercase Lines",
+        // Matches lines with uppercase letters (A-Z), plus spaces/punctuation
+        pattern: /^[^a-z]*$/gm,
+        desc: "Lines without any lowercase letters",
+        enabled: true
+      },
+      fullyuppercasewords: {  // New Preset
+        name: "Fully Uppercase Words",
+        pattern: /\b[A-Z]+\b/g,
+        desc: "Words that are entirely in uppercase letters",
+        enabled: true
+      },
+      singledigitwords: {  // Modified Preset
+        name: "Single-Digit Words",
+        // Matches any standalone number (one or more digits)
+        pattern: /\b\d+\b/g,
+        desc: "Isolated single or multi-digit numbers (e.g., '1', '100', '30')",
+        enabled: true
+      },
+
+      /* ========================
+       *  ADDITIONAL PRESETS
+       *  (DO NOT DELETE ANY)
+       * ======================= */
+      // Retain other presets if any, keeping them disabled by default
+      creditcards: {
+        name: "Credit Cards",
+        pattern: /\b(?:\d{4}[- ]?){3}\d{4}\b/g,
+        desc: "Credit card numbers",
+        enabled: false
+      },
+      htmltags: {
+        name: "HTML Tags",
+        pattern: /<\/?[a-z][a-z0-9]*\b[^>]*>/gi,
+        desc: "HTML tags and elements",
+        enabled: false
+      },
+      uuids: {
+        name: "UUIDs",
+        pattern: /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,
+        desc: "Universally Unique Identifiers",
+        enabled: false
+      },
+      hexcolors: {
+        name: "Hex Colors",
+        pattern: /#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})\b/g,
+        desc: "Hexadecimal color codes",
+        enabled: false
+      },
+      macaddress: {
+        name: "MAC Addresses",
+        pattern: /\b([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})\b/g,
+        desc: "Network device MAC addresses",
+        enabled: false
+      },
+      bitcoin: {
+        name: "Bitcoin Addresses",
+        pattern: /\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b/g,
+        desc: "Bitcoin wallet addresses",
+        enabled: false
+      },
+      jsonkeys: {
+        name: "JSON Keys",
+        pattern: /"([^"]+)":/g,
+        desc: "JSON object keys",
+        enabled: false
+      },
+      cssprops: {
+        name: "CSS Properties",
+        pattern: /([\w-]+)\s*:/g,
+        desc: "CSS properties and values",
+        enabled: false
+      },
+      docker: {
+        name: "Docker Commands",
+        pattern: /(FROM|RUN|CMD|LABEL|COPY|ADD|ENTRYPOINT)\s+/gi,
+        desc: "Common Docker commands",
+        enabled: false
+      },
+      lorem: {
+        name: "Lorem Ipsum",
+        pattern: /\blorem\s+ipsum\b/gi,
+        desc: "Lorem ipsum placeholder text",
+        enabled: false
+      },
+        /* ========================
+        *  ADDITIONAL NAME-RELATED PRESETS
+        * ======================= */
+        firstname: {
+        name: "First Names",
+        pattern: /\b[A-Z][a-z]+\b/g,
+        desc: "First names starting with a capital letter",
+        enabled: true
+        },
+        lastname: {
+        name: "Last Names",
+        pattern: /\b[A-Z][a-z]+\b/g,
+        desc: "Last names starting with a capital letter",
+        enabled: true
+        },
+        nameswithapostrophes: {
+        name: "Names with Apostrophes",
+        pattern: /\b[A-Z][a-z]+['-][A-Z][a-z]+\b/g,
+        desc: "Names containing apostrophes or hyphens (e.g., O'Connor, Anne-Marie)",
+        enabled: true
+        },
+        nameswithsuffixes: {
+        name: "Names with Suffixes",
+        pattern: /\b[A-Z][a-z]+(?:,?\s(?:Jr|Sr|II|III|IV))\b/g,
+        desc: "Names with suffixes like Jr., Sr., II, III, etc.",
+        enabled: true
+        },
+        initialsandnames: {
+        name: "Initials and Names",
+        pattern: /\b[A-Z]\. [A-Z][a-z]+\b/g,
+        desc: "Initial followed by a first name (e.g., J. Smith)",
+        enabled: true
+        },
+        titlesfullnames: {
+        name: "Titles with Full Names",
+        pattern: /\b(Mr|Mrs|Ms|Dr)\. [A-Z][a-z]+ [A-Z][a-z]+\b/g,
+        desc: "Titles followed by first and last names (e.g., Dr. John Doe)",
+        enabled: true
+        },
+        fullnamevariations: {
+        name: "Full Name Variations",
+        pattern: /\b[A-Z][a-z]+(?: [A-Z]\.)? [A-Z][a-z]+\b/g,
+        desc: "Full names with optional middle initials (e.g., John A. Smith)",
+        enabled: true
+        },
+
+    };
+
+    // Existing text type detection references these presets
+    // (link, email, code remain recognized)
+    const textTypes = {
+      link: regexPresets.urls,
+      code: { pattern: /(`{1,3}[^`]+`{1,3})/g }, 
+      email: regexPresets.emails
+    };
+
+    // Preset Settings Storage
+    let presetSettings = JSON.parse(localStorage.getItem('presetSettings') || '{}');
+
+    /*************************************************
+     *        PAGE LOAD, CLIPS RENDER, INIT
+     *************************************************/
+    window.onload = () => {
+      initPresetSettings();
+      renderRegexPresets();
+      renderClips();
+      updateUndoButton();
+    };
+
+    function initPresetSettings() {
+      // Merge default 'enabled' states with any saved preferences
+      Object.entries(regexPresets).forEach(([id, preset]) => {
+        if (!presetSettings.hasOwnProperty(id)) {
+          presetSettings[id] = preset.enabled;
+        }
+      });
+      localStorage.setItem('presetSettings', JSON.stringify(presetSettings));
+    }
+
+    function renderRegexPresets() {
+      // Renders only enabled presets as clickable chips
+      const container = document.querySelector('.regex-presets');
+      const enabledPresets = Object.entries(regexPresets)
+        .filter(([id]) => presetSettings[id])
+        .map(([id, p]) => `
+          <div class="regex-preset" onclick="applyRegexPreset('${id}')">
+            ${p.name}
+          </div>
+        `);
+
+      // Keep "Manage Presets" button at the start
+      container.innerHTML = `
+        <button onclick="openPresetSettings()" style="margin-right:10px;">
+          <i class="fas fa-cog"></i> Manage Presets
+        </button>
+        ${enabledPresets.join('')}
+      `;
+    }
+
+    /*************************************************
+     *               UNDO SYSTEM
+     *************************************************/
+    function trackAction(type, data) {
+      actionHistory.push({ type, data, timestamp: Date.now() });
+      if (actionHistory.length > MAX_HISTORY) actionHistory.shift();
+      updateUndoButton();
+    }
+    function undoLastAction() {
+      if (actionHistory.length === 0) return;
+      const lastAction = actionHistory.pop();
+      switch(lastAction.type) {
+        case 'add':
+          clips = clips.filter(c => c.timestamp !== lastAction.data.timestamp);
+          break;
+        case 'delete':
+          clips.splice(lastAction.data.index, 0, lastAction.data.clip);
+          break;
+        case 'edit':
+          const clip = clips[lastAction.data.index];
+          clip.content = lastAction.data.previousContent;
+          clip.tags = lastAction.data.previousTags;
+          break;
+      }
+      saveClips();
+      renderClips();
+      updateUndoButton();
+      showNotification(`Undo: ${lastAction.type} action`);
+    }
+    function updateUndoButton() {
+      document.getElementById('undoButton').disabled = (actionHistory.length === 0);
+    }
+
+    /*************************************************
+     *        EDITOR & TEXT PROCESSING
+     *************************************************/
+    function processText() {
+      const text = document.getElementById("editor").value.trim();
+      if (!text) return;
+      const detected = detectContent(text);
+      addClip(detected.content, detected.type);
+    }
+    function detectContent(text) {
+      // If recognized by link/email patterns, set type
+      // Otherwise "text"
+      if(textTypes.link.pattern.test(text)) {
+        return { type: 'link', content: text };
+      }
+      else if(textTypes.email.pattern.test(text)) {
+        return { type: 'email', content: text };
+      }
+      else if(textTypes.code.pattern.test(text)) {
+        return { type: 'code', content: text };
+      }
+      return { type: 'text', content: text };
+    }
+    function formatText(style) {
+      const editor = document.getElementById("editor");
+      const sStart = editor.selectionStart;
+      const sEnd = editor.selectionEnd;
+      const sel = editor.value.slice(sStart, sEnd);
+      let wrapped = sel;
+      if (style === "bold") wrapped = `**${sel}**`;
+      if (style === "italic") wrapped = `*${sel}*`;
+      editor.setRangeText(wrapped, sStart, sEnd, "end");
+      updateWordCharCount();
+    }
+    function extractLinks() {
+      const text = document.getElementById("editor").value;
+      const matchArray = text.matchAll(regexPresets.urls.pattern);
+      for(const match of matchArray) {
+        addClip(match[0], "link");
+      }
+    }
+    function extractEmails() {
+      const text = document.getElementById("editor").value;
+      const matchArray = text.matchAll(regexPresets.emails.pattern);
+      for(const match of matchArray) {
+        addClip(match[0], "email");
+      }
+    }
+    function extractCustomRegex() {
+      const text = document.getElementById("editor").value;
+      const regexString = document.getElementById("customRegex").value;
+      if(!regexString) return;
+      try {
+        const customRegex = new RegExp(regexString, "g");
+        const matches = [...text.matchAll(customRegex)].map(m => m[0]);
+        matches.forEach(match => addClip(match, "custom"));
+      } catch (err) {
+        alert("Invalid Regular Expression.");
+      }
+    }
+    function applyRegexPreset(id) {
+      const preset = regexPresets[id];
+      if (!preset) return;
+      const text = document.getElementById('editor').value;
+      const matches = [...text.matchAll(preset.pattern)].map(m => m[0]);
+      if (matches.length > 0) {
+        matches.forEach(match => addClip(match, 'regex'));
+        showNotification(`Found ${matches.length} matches: ${preset.name}`);
+      } else {
+        showNotification(`No matches found for: ${preset.name}`);
+      }
+    }
+    function updateWordCharCount() {
+      const text = document.getElementById("editor").value;
+      const words = text.trim().split(/\s+/).filter(Boolean).length;
+      const chars = text.length;
+      document.getElementById("counterPanel").textContent = `Words: ${words} | Characters: ${chars}`;
+    }
+
+    /*************************************************
+     *          CLIPBOARD & SNIPPET MANAGEMENT
+     *************************************************/
+    function addClip(content, type) {
+      const snippet = {
+        content,
+        type,
+        timestamp: Date.now(),
+        tags: [],
+        favorite: false
+      };
+      clips.push(snippet);
+      trackAction('add', snippet);
+      saveClips();
+      renderClips();
+    }
+    function renderClips(filter = "") {
+      const panel = document.getElementById("clipboardPanel");
+      const sortedClips = [
+        ...clips.filter((c) => c.favorite),
+        ...clips.filter((c) => !c.favorite)
+      ];
+      panel.innerHTML = sortedClips
+        .filter(clip =>
+          clip.content.toLowerCase().includes(filter.toLowerCase()) ||
+          (clip.tags && clip.tags.some(t => t.toLowerCase().includes(filter.toLowerCase())))
+        )
+        .map((clip) => {
+          const index = clips.indexOf(clip);
+          let color = varColorByType(clip.type);
+          return `
+            <div class="clip-item">
+              <div class="type-indicator" style="background:${color}"></div>
+              <div class="clip-content" title="${clip.content}" onclick="showClipPreview(${index})">
+                ${clip.content}
+                <div style="font-size:0.8em;color:#555;">
+                  ${new Date(clip.timestamp).toLocaleTimeString()}
+                  ${clip.tags.length ? '| Tags: ' + clip.tags.join(', ') : ''}
+                </div>
+              </div>
+              <button onclick="copyToClipboard(${index})" data-tooltip="Copy"><i class="fas fa-copy"></i></button>
+              <button onclick="toggleFavorite(${index})" style="background:#4caf50;" data-tooltip="Favorite/Unfavorite"><i class="fas fa-star"></i></button>
+              <button onclick="editSnippet(${index})" style="background:#666;" data-tooltip="Edit"><i class="fas fa-pen"></i></button>
+              <button onclick="deleteSnippet(${index})" style="background:#f44336;" data-tooltip="Delete"><i class="fas fa-trash"></i></button>
+            </div>
+          `;
+        })
+        .join("");
+    }
+    function varColorByType(type) {
+      if(type && regexPresets[type]) {
+        return "#4CAF50"; // or preset-based color if desired
+      }
+      if(type === 'code') return "#9C27B0";
+      return "#2196f3";
+    }
+    function copyToClipboard(index) {
+      if(!clips[index]) return;
+      navigator.clipboard.writeText(clips[index].content).then(() => showNotification("Copied!"));
+    }
+    function copyAllClips() { // New Function
+      if(clips.length === 0) {
+        showNotification("No clips to copy.");
+        return;
+      }
+      const allContent = clips.map(clip => clip.content).join('\n');
+      navigator.clipboard.writeText(allContent).then(() => showNotification("All clips copied!"));
+    }
+    function toggleFavorite(index) {
+      clips[index].favorite = !clips[index].favorite;
+      saveClips();
+      renderClips();
+    }
+    function editSnippet(index) {
+      const prevContent = clips[index].content;
+      const prevTags = [...clips[index].tags];
+      const newContent = prompt("Edit snippet content:", prevContent);
+      if(newContent !== null) {
+        clips[index].content = newContent;
+        const newTags = prompt("Update tags (comma-separated):", prevTags.join(", "));
+        if(newTags !== null) {
+          clips[index].tags = newTags.split(",").map(t => t.trim()).filter(Boolean);
+        }
+        trackAction('edit', {
+          index,
+          previousContent: prevContent,
+          previousTags: prevTags
+        });
+        saveClips();
+        renderClips();
+      }
+    }
+    function deleteSnippet(index) {
+      if(!confirm("Delete this snippet?")) return;
+      const deletedClip = clips[index];
+      trackAction('delete', { index, clip: deletedClip });
+      clips.splice(index, 1);
+      saveClips();
+      renderClips();
+    }
+    function filterClips(query) {
+      renderClips(query);
+    }
+    function showClipPreview(index) {
+      alert("Preview:\n\n" + clips[index].content);
+    }
+    function clearAllClips() {
+      if(confirm("Are you sure you want to clear all snippets?")) {
+        clips = [];
+        saveClips();
+        renderClips();
+      }
+    }
+
+    /*************************************************
+     *              IMPORT / EXPORT
+     *************************************************/
+    function exportClips() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(clips));
+      const dlAnchor = document.createElement("a");
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", "clips.json");
+      dlAnchor.click();
+    }
+    function importClips() {
+      const fileInput = document.getElementById("fileInput");
+      fileInput.value = "";
+      fileInput.click();
+      fileInput.addEventListener("change", function handleFile(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          try {
+            const imported = JSON.parse(evt.target.result);
+            if(Array.isArray(imported)) {
+              clips = imported;
+              saveClips();
+              renderClips();
+              alert("Clips imported!");
+            } else {
+              alert("Invalid file format.");
+            }
+          } catch(err) {
+            alert("Failed to parse JSON.");
+          }
+        };
+        reader.readAsText(file);
+        fileInput.removeEventListener("change", handleFile);
+      });
+    }
+
+    /*************************************************
+     *          PRESET SETTINGS MODAL LOGIC
+     *************************************************/
+    function openPresetSettings() {
+      const container = document.getElementById('presetSettings');
+      container.innerHTML = Object.entries(regexPresets).map(([id, preset]) => `
+        <div class="preset-item">
+          <input type="checkbox" id="${id}" ${presetSettings[id] ? 'checked' : ''}>
+          <label for="${id}">${preset.name}</label>
+          <i class="fas fa-info-circle" title="${preset.desc}"></i>
+        </div>
+      `).join('');
+      document.getElementById('presetSettingsModal').style.display = 'flex';
+    }
+    function savePresetSettings() {
+      Object.entries(regexPresets).forEach(([id]) => {
+        const checkbox = document.getElementById(id);
+        presetSettings[id] = checkbox.checked;
+      });
+      localStorage.setItem('presetSettings', JSON.stringify(presetSettings));
+      closePresetSettings();
+      renderRegexPresets();
+    }
+    function closePresetSettings() {
+      document.getElementById('presetSettingsModal').style.display = 'none';
+    }
+
+    /*************************************************
+     *               THEME & UTILS
+     *************************************************/
+    function toggleTheme() {
+      currentTheme = (currentTheme === "light") ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", currentTheme);
+      localStorage.setItem("theme", currentTheme);
+    }
+    function showNotification(msg) {
+      const n = document.getElementById("notification");
+      n.textContent = msg;
+      n.style.display = "block";
+      setTimeout(() => n.style.display = "none", 2000);
+    }
+    function toggleCollapse(sectionId) {
+      document.getElementById(sectionId).classList.toggle("collapsed");
+    }
+    function saveClips() {
+      localStorage.setItem("clips", JSON.stringify(clips));
+    }
+
+    /*************************************************
+     *             HOTKEY HANDLING
+     *************************************************/
+    document.addEventListener("keydown", (e) => {
+      // Ctrl+1..9 => copy snippet
+      if (e.ctrlKey && e.key >= "1" && e.key <= "9") {
+        e.preventDefault();
+        const idx = parseInt(e.key) - 1;
+        if(clips[idx]) copyToClipboard(idx);
+      }
+      // Ctrl+Z => Undo
+      if (e.ctrlKey && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        undoLastAction();
+      }
+    });
+  </script>
+</body>
+</html>
